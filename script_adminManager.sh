@@ -9,8 +9,12 @@ loggedInUser=$(ls -l /dev/console | awk '{ print $3 }')
 # Test Output
 # echo $loggedInUser
 
+# Get Realname
+FullName=$(dscl . -read /Users/"$loggedInUser" RealName | awk 'BEGIN {FS=": "} {print $1}')
+realName=$(echo $FullName | awk '{print $2,$3}')
+
 # Extract Username From Local Admin List
-groupMembership=`dscl localhost read /Local/Default/Groups/admin GroupMembership | tr " " "\n" | grep "$loggedInUser"`
+groupMembership=$(dscl localhost read /Local/Default/Groups/admin GroupMembership | tr " " "\n" | grep "$loggedInUser")
 # Test Output
 # echo $groupMembership
 
@@ -21,17 +25,17 @@ adGroupName="ADGROUPNAME"
 adDomain="ADDOMAIN"
 
 # Verify Username Not Present Already In Active 
-adGroup=`dscl "/Active\ Directory/$adDomain/All\ Domains" -read /Groups/$adGroupName member | grep -o "$realname"`
+adGroup=$(dscl "/Active Directory/$adDomain/All Domains" -read /Groups/$adGroupName member | grep -o "$realName")
 #Test Output
 # echo $adGroup
 
 # If User is in AD Admin Group but Not Local Admin
 if [[ "$loggedInUser" == "$adGroup" && "$loggedInUser" != "$groupMembership" ]]; then
-		dscl . append /Groups/admin GroupMembership $loggedInUser
+		dscl . append /Groups/admin GroupMembership "$loggedInUser"
             echo "`date -u`: $loggedInUser - Local Admin Rights Granted by by _casperagent" >> /Library/Logs/Logs/YOURLOGDIR/YOURLOGFILE.log
 else
 # If User is not in the AD  Group
 if [[ "$loggedInUser" != "$adGroup" && "$loggedInUser" == "$groupMembership" ]]; then
-		dscl . delete /Groups/admin GroupMembership $loggedInUser
-        echo "`date -u`: $loggedInUser - Local Admin Rights Revoked by _casperagent" >> /Library/Logs/YOURLOGDIR/YOURLOGFILE.log
+		dscl . delete /Groups/admin GroupMembership "$loggedInUser"
+        echo "`date -u`: "$loggedInUser" - Local Admin Rights Revoked by _casperagent" >> /Library/Logs/YOURLOGDIR/YOURLOGFILE.log
 fi
