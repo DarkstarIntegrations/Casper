@@ -11,7 +11,7 @@ loggedInUser=$(ls -l /dev/console | awk '{ print $3 }')
 
 # Get Realname
 FullName=$(dscl . -read /Users/"$loggedInUser" RealName | awk 'BEGIN {FS=": "} {print $1}')
-realName=$(echo $FullName | awk '{print $2,$3}')
+realName=$(echo "$FullName" | awk '{print $2,$3}')
 
 # Extract Username From Local Admin List
 groupMembership=$(dscl localhost read /Local/Default/Groups/admin GroupMembership | tr " " "\n" | grep "$loggedInUser")
